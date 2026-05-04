@@ -14,10 +14,6 @@ interface CampusMapProps {
   onRoomClick?: (room: Room) => void;
 }
 
-function toLatLng(x: number, y: number): L.LatLngExpression {
-  return [1000 - y, x] as L.LatLngExpression;
-}
-
 export default function CampusMap({ startId, endId, path, onRoomClick }: CampusMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,17 +23,32 @@ export default function CampusMap({ startId, endId, path, onRoomClick }: CampusM
   const overlayRef = useRef<L.ImageOverlay | null>(null);
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [activeFloorPlan, setActiveFloorPlan] = useState<string>("/blueprint.jpg");
+  const [imageRatio, setImageRatio] = useState<number>(1);
 
-  // Fetch active floor plan
+  // Helper to align relative coordinates to the actual aspect ratio
+  const toLatLng = (x: number, y: number): L.LatLngExpression => {
+    return [(1000 - y) * imageRatio, x] as L.LatLngExpression;
+  };
+
+  // Fetch active floor plan and get its natural aspect ratio
   useEffect(() => {
     (async () => {
+      let imageUrl = "/blueprint.jpg";
       const { data } = await supabase
         .from("floor_plans")
         .select("image_url")
         .eq("is_active", true)
         .limit(1)
         .maybeSingle();
-      if (data?.image_url) setActiveFloorPlan(data.image_url);
+      if (data?.image_url) imageUrl = data.image_url;
+      setActiveFloorPlan(imageUrl);
+
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.naturalHeight / img.naturalWidth;
+        setImageRatio(ratio);
+      };
+      img.src = imageUrl;
     })();
   }, []);
 
@@ -59,21 +70,35 @@ export default function CampusMap({ startId, endId, path, onRoomClick }: CampusM
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Init map once
+  // Init map once the image ratio is calculated
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current) return;
+
+    // Cleanup if re-running due to ratio change
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+      markersRef.current.clear();
+      profMarkersRef.current.clear();
+      if (pathLineRef.current) pathLineRef.current = null;
+    }
 
     const map = L.map(containerRef.current, {
       crs: L.CRS.Simple,
-      minZoom: -2,
+      minZoom: -3,
       maxZoom: 3,
-      zoomSnap: 0.25,
+      zoomSnap: 0.1,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 100,
       attributionControl: false,
+      zoomControl: false, // Re-adding at bottom-left to avoid Search Island
     });
 
-    const bounds: L.LatLngBoundsExpression = [[0, 0], [1000, 1000]];
+    L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+    const bounds: L.LatLngBoundsExpression = [[0, 0], [1000 * imageRatio, 1000]];
     overlayRef.current = L.imageOverlay(activeFloorPlan, bounds).addTo(map);
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, { padding: [20, 20] });
     mapRef.current = map;
 
     // Add room markers
@@ -96,18 +121,13 @@ export default function CampusMap({ startId, endId, path, onRoomClick }: CampusM
     }
 
     return () => {
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFloorPlan]);
-
-  // Update floor plan overlay when it changes
-  useEffect(() => {
-    if (overlayRef.current && mapRef.current) {
-      overlayRef.current.setUrl(activeFloorPlan);
-    }
-  }, [activeFloorPlan]);
+  }, [imageRatio, activeFloorPlan]);
 
   // Update professor markers
   useEffect(() => {
@@ -147,7 +167,7 @@ export default function CampusMap({ startId, endId, path, onRoomClick }: CampusM
 
       profMarkersRef.current.set(prof.id, marker);
     }
-  }, [professors]);
+  }, [professors, imageRatio]);
 
   // Update marker styles based on start/end selection
   useEffect(() => {
@@ -179,18 +199,17 @@ export default function CampusMap({ startId, endId, path, onRoomClick }: CampusM
     });
 
     const line = L.polyline(latLngs, {
-      color: "hsl(0, 85%, 60%)",
-      weight: 4,
-      opacity: 0.95,
-      dashArray: "10 6",
+      color: "#3b82f6", // Vibrant blue
+      weight: 8,
+      opacity: 0.9,
       lineCap: "round",
       lineJoin: "round",
-      className: "path-animated",
+      className: "path-animated path-glow",
     }).addTo(map);
 
     pathLineRef.current = line;
-    map.fitBounds(line.getBounds(), { padding: [60, 60] });
-  }, [path]);
+    map.flyToBounds(line.getBounds(), { padding: [80, 80], duration: 0.8 });
+  }, [path, imageRatio]);
 
   return (
     <div

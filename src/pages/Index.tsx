@@ -1,8 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CampusMap from "@/components/CampusMap";
-import { Room } from "@/lib/campusData";
+import SearchIsland from "@/components/SearchIsland";
+import RouteDetails from "@/components/RouteDetails";
+import RoomPicker from "@/components/RoomPicker";
+import { Room, rooms } from "@/lib/campusData";
 import { aStar } from "@/lib/graph";
+
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -11,18 +16,34 @@ const Index = () => {
   const [path, setPath]       = useState<string[] | null | undefined>(undefined);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<"start" | "end">("start");
+
   const handleRoomClick = useCallback((room: Room) => {
     setSelectedRoom(room);
   }, []);
 
-  const handleSetStart = (id: string) => setStartId(id);
-  const handleSetEnd   = (id: string) => setEndId(id);
-
-  const handleFindPath = () => {
-    if (!startId || !endId) return;
-    const result = aStar(startId, endId);
-    setPath(result);
+  const openPicker = (mode: "start" | "end") => {
+    setPickerMode(mode);
+    setPickerOpen(true);
   };
+
+  const handleSelectRoom = (roomId: string) => {
+    if (pickerMode === "start") {
+      setStartId(roomId);
+    } else {
+      setEndId(roomId);
+    }
+  };
+
+  useEffect(() => {
+    if (startId && endId) {
+      const result = aStar(startId, endId);
+      setPath(result);
+    } else {
+      setPath(undefined);
+    }
+  }, [startId, endId]);
 
   const handleReset = () => {
     setStartId(null);
@@ -31,8 +52,45 @@ const Index = () => {
     setSelectedRoom(null);
   };
 
+  const calculateDistance = () => {
+    if (!path || path.length < 2) return 0;
+    let dist = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const n1 = rooms.find(r => r.id === path[i]);
+      const n2 = rooms.find(r => r.id === path[i+1]);
+      if (n1 && n2) {
+        dist += Math.sqrt(Math.pow(n1.x - n2.x, 2) + Math.pow(n1.y - n2.y, 2));
+      }
+    }
+    return dist;
+  };
+
+  const startRoomName = startId ? rooms.find(r => r.id === startId)?.label : undefined;
+  const endRoomName = endId ? rooms.find(r => r.id === endId)?.label : undefined;
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
+      <SearchIsland 
+        startRoomName={startRoomName} 
+        endRoomName={endRoomName} 
+        onOpenStart={() => openPicker("start")}
+        onOpenEnd={() => openPicker("end")}
+      />
+      
+      {/* Theme Toggle placed right below the search island */}
+      <div className="absolute top-[150px] right-4 z-50">
+        <ThemeToggle />
+      </div>
+
+      <RouteDetails path={path} distanceUnits={calculateDistance()} onClear={handleReset} />
+
+      <RoomPicker 
+        open={pickerOpen} 
+        onOpenChange={setPickerOpen} 
+        onSelectRoom={handleSelectRoom} 
+        title={pickerMode === "start" ? "Choose starting point" : "Choose destination"}
+      />
+
       {/* Full Screen Map Layer */}
       <main className="absolute inset-0 z-0">
         <CampusMap
