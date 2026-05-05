@@ -38,8 +38,12 @@ export default function AdminLogin() {
         if (error) throw error;
         navigate("/admin/dashboard");
       }
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError(String(error));
+      }
     } finally {
       setLoading(false);
     }

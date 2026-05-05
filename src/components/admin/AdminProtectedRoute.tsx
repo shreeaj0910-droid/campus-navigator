@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-const ADMIN_EMAILS = ["shrikrushanajadav3@gmail.com"];
+const ADMIN_EMAILS = ["shrikrushanajadav3@gmail.com", "shreearjun21@gmail.com"];
 
 export default function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);

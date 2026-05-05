@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      edges: {
+        Row: {
+          id: string
+          from_node: string
+          to_node: string
+          weight: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          from_node: string
+          to_node: string
+          weight: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          from_node?: string
+          to_node?: string
+          weight?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       floor_plans: {
         Row: {
           created_at: string
@@ -21,6 +45,7 @@ export type Database = {
           image_url: string
           is_active: boolean
           name: string
+          width_meters: number
         }
         Insert: {
           created_at?: string
@@ -28,6 +53,7 @@ export type Database = {
           image_url: string
           is_active?: boolean
           name: string
+          width_meters?: number
         }
         Update: {
           created_at?: string
@@ -35,6 +61,37 @@ export type Database = {
           image_url?: string
           is_active?: boolean
           name?: string
+          width_meters?: number
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          type: string
+          floor_level: number
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          label: string
+          type: string
+          floor_level?: number
+          x: number
+          y: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          type?: string
+          floor_level?: number
+          x?: number
+          y?: number
         }
         Relationships: []
       }

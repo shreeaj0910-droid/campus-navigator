@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Users, Map, LayoutDashboard, Route } from "lucide-react";
 import ProfessorManager from "@/components/admin/ProfessorManager";
 import FloorPlanManager from "@/components/admin/FloorPlanManager";
+import RouteManager from "@/components/admin/RouteManager";
+import RoomManager from "@/components/admin/RoomManager";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { Session } from "@supabase/supabase-js";
 
@@ -93,20 +95,8 @@ export default function AdminDashboard() {
           <div className="bg-card border border-border rounded-2xl shadow-sm p-6 min-h-[500px]">
             {activeTab === "professors" && <ProfessorManager />}
             {activeTab === "floorplans" && <FloorPlanManager />}
-            {activeTab === "rooms" && (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-20">
-                <LayoutDashboard size={48} className="mb-4 opacity-20" />
-                <h3 className="text-xl font-semibold mb-2">Manage Rooms</h3>
-                <p>Room management interface coming soon.</p>
-              </div>
-            )}
-            {activeTab === "routes" && (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-20">
-                <Route size={48} className="mb-4 opacity-20" />
-                <h3 className="text-xl font-semibold mb-2">Manage Routes</h3>
-                <p>Route graph management interface coming soon.</p>
-              </div>
-            )}
+            {activeTab === "rooms" && <RoomManager />}
+            {activeTab === "routes" && <RouteManager />}
           </div>
         </div>
       </main>
