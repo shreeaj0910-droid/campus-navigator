@@ -14,7 +14,7 @@ export default function FloorIsland({ activeFloor, setActiveFloor }: FloorIsland
   ];
 
   return (
-    <div className="absolute bottom-8 right-8 z-50 flex flex-col gap-2 p-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-full shadow-lg shadow-cyan-900/20">
+    <div className="absolute bottom-28 right-4 z-50 flex flex-col gap-2 p-2 bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-full shadow-lg shadow-cyan-900/20">
       {floors.map((floor) => {
         const isActive = activeFloor === floor.value;
         return (

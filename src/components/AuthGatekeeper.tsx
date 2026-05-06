@@ -3,10 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 
-// Placeholder imports - create these or map them to existing pages
 import { LoginScreen } from './LoginScreen';
 import { AdminPanel } from './AdminPanel';
-import { StudentProfile } from './StudentProfile';
+import StudentDashboard from './StudentDashboard';
 
 export const AuthGatekeeper = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,9 +52,11 @@ export const AuthGatekeeper = () => {
     return <LoginScreen />;
   }
 
+  // Admin gets the full Admin Panel
   if (user.email === 'shreearjun21@gmail.com') {
     return <AdminPanel />;
   }
 
-  return <StudentProfile />;
+  // All other authenticated users get the Student Dashboard
+  return <StudentDashboard />;
 };
