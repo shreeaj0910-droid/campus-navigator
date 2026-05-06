@@ -6,6 +6,7 @@ import RouteDetails from "@/components/RouteDetails";
 import RoomPicker from "@/components/RoomPicker";
 import { Room, rooms } from "@/lib/campusData";
 import { aStar } from "@/lib/graph";
+import { useCampusGPS } from "@/hooks/useCampusGPS";
 
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -15,6 +16,8 @@ const Index = () => {
   const [endId, setEndId]     = useState<string | null>(null);
   const [path, setPath]       = useState<string[] | null | undefined>(undefined);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  
+  const { isGPSLocked, latitude, longitude } = useCampusGPS();
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState<"start" | "end">("start");
@@ -71,6 +74,13 @@ const Index = () => {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
       <SearchIsland 
+        isGPSLocked={isGPSLocked}
+        latitude={latitude}
+        longitude={longitude}
+        onSetGPSStart={(lat, lng) => {
+          console.log("GPS Location selected:", lat, lng);
+          // Here you can handle the GPS coordinates (e.g. set a custom start state)
+        }}
         startRoomName={startRoomName} 
         endRoomName={endRoomName} 
         onOpenStart={() => openPicker("start")}
