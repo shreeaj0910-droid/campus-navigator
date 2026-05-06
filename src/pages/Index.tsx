@@ -4,6 +4,7 @@ import CampusMap from "@/components/CampusMap";
 import SearchIsland from "@/components/SearchIsland";
 import RouteDetails from "@/components/RouteDetails";
 import RoomPicker from "@/components/RoomPicker";
+import FloorIsland from "@/components/FloorIsland";
 import { Room, rooms } from "@/lib/campusData";
 import { aStar } from "@/lib/graph";
 import { useCampusGPS } from "@/hooks/useCampusGPS";
@@ -16,6 +17,7 @@ const Index = () => {
   const [endId, setEndId]     = useState<string | null>(null);
   const [path, setPath]       = useState<string[] | null | undefined>(undefined);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [activeFloor, setActiveFloor] = useState(0);
   
   const { isGPSLocked, latitude, longitude } = useCampusGPS();
 
@@ -77,15 +79,13 @@ const Index = () => {
         isGPSLocked={isGPSLocked}
         latitude={latitude}
         longitude={longitude}
-        onSetGPSStart={(lat, lng) => {
-          console.log("GPS Location selected:", lat, lng);
-          // Here you can handle the GPS coordinates (e.g. set a custom start state)
+        onCalculateRoute={(start, end) => {
+          console.log("Calculating route from", start, "to", end);
+          setStartId(start);
+          setEndId(end);
         }}
-        startRoomName={startRoomName} 
-        endRoomName={endRoomName} 
-        onOpenStart={() => openPicker("start")}
-        onOpenEnd={() => openPicker("end")}
       />
+      <FloorIsland activeFloor={activeFloor} setActiveFloor={setActiveFloor} />
       
       {/* Theme Toggle placed right below the search island */}
       <div className="absolute top-[150px] right-4 z-50">
